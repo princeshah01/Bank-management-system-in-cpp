@@ -21,6 +21,12 @@ public:
     void already_user();
     void deposit();
     void withdraw();
+    void transfer();
+    void searchUserRecord();
+    void editUserRecord();
+    void deleteUserRecord();
+    void showAllRecord();
+    void paymentRecord();    
 };
 
 void bank::menu()
@@ -124,6 +130,8 @@ void bank::bank_management()
             break;
 
         case 5:
+            transfer();
+            break;
         case 6:
         case 7:
         case 8:
@@ -373,6 +381,7 @@ void bank::withdraw()
             if (wdraw > balance)
             {
                 cout << "\n\n Insufficient balance. Current balance: " << balance;
+                file1 << id << " " << name << " " << fname << " " << address << " " << pin << " " << password << " " << phonenumber << " " << balance << "\n";
             }
             else
             {
@@ -397,6 +406,98 @@ void bank::withdraw()
         cout << "\n Data not found.";
     }
 }
+void bank::transfer()
+{
+    system("cls");
+    string s_id, r_id;
+    double amount;
+    bool s_match = false;
+    bool r_match = false;
+
+    cout << "\n\n\t\tTransfer Option";
+    cout << "\n\n Enter Sender User ID: ";
+    cin >> s_id;
+    cout << "\n Enter Receiver User ID: ";
+    cin >> r_id;
+    cout << "\n Enter Transfer Amount: ";
+    cin >> amount;
+
+    if (amount <= 0)
+    {
+        cout << "\n\n Transfer amount must be positive.";
+        return;
+    }
+
+    fstream file, file1;
+    file.open("bank.txt", ios::in);
+    if (!file)
+    {
+        cout << "\n\n File not found.";
+        return;
+    }
+
+    file1.open("bank1.txt", ios::out);
+    if (!file1)
+    {
+        cout << "\n\n Error creating temporary file.";
+        file.close();
+        return;
+    }
+
+    string id, name, fname, address, password, phonenumber;
+    int pin;
+    double balance;
+    bool sufficient_balance = false;
+
+    while (file >> id >> name >> fname >> address >> pin >> password >> phonenumber >> balance)
+    {
+        if (s_id == id)
+        {
+            s_match = true;
+            if (balance >= amount)
+            {
+                balance -= amount;
+                sufficient_balance = true;
+            }
+            else
+            {
+                cout << "\n\n Insufficient balance.";
+                file1.close();
+                file.close();
+                return;
+            }
+        }
+        if (r_id == id)
+        {
+            r_match = true;
+            balance += amount;
+        }
+        file1 << id << " " << name << " " << fname << " " << address << " " << pin << " " << password << " " << phonenumber << " " << balance << "\n";
+    }
+
+    file.close();
+    file1.close();
+
+    if (!s_match)
+    {
+        cout << "\n\n Sender ID not found.";
+        remove("bank1.txt"); 
+        return;
+    }
+
+    if (!r_match)
+    {
+        cout << "\n\n Receiver ID not found.";
+        remove("bank1.txt"); 
+        return;
+    }
+
+    remove("bank.txt");
+    rename("bank1.txt", "bank.txt");
+
+    cout << "\n\n Transfer successful.";
+}
+
 
 int main()
 {
